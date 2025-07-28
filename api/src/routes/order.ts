@@ -1,3 +1,4 @@
+import { PrismaClient } from "@prisma/client";
 import { FastifyPluginAsync } from "fastify";
 
 const STATUS = ["PLACED", "PICKED", "SHIPPED", "DELIVERED"] as const;
@@ -43,7 +44,7 @@ const orderRoutes: FastifyPluginAsync = async (app) => {
   app.post("/", async (req, reply) => {
     try {
       const { userId, items, paymentReceived } = req.body as any;
-      const result = await app.prisma.$transaction(async tx => {
+      const result = await app.prisma.$transaction(async (tx: PrismaClient) => {
         for (const item of items) {
           const prod = await tx.product.findUnique({ where: { id: item.productId } });
           if (!prod || prod.stock < item.quantity) throw new Error("Not enough stock for product " + item.productId);

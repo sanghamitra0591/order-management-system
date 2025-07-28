@@ -1,9 +1,17 @@
-import { buildApp } from './app';
+// src/server.ts
+import Fastify from 'fastify'
+import prismaPlugin from './prisma'
+import userRoutes from './routes/user'
 
-const app = buildApp();
-app.listen({ port: 4000, host: "0.0.0.0" }, err => {
+const app = Fastify()
+
+app.register(prismaPlugin)
+app.register(userRoutes, { prefix: '/users' })
+
+app.listen({ port: 4000 }, (err) => {
   if (err) {
-    app.log.error(err);
-    process.exit(1);
+    console.error(err)
+    process.exit(1)
   }
-});
+  console.log('Server running on port 4000')
+})
