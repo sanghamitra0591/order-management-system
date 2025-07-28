@@ -1,27 +1,20 @@
-import { FastifyPluginAsync } from 'fastify';
-import * as userService from '../services/user.service';
+import { FastifyPluginAsync } from "fastify";
 
 const userRoutes: FastifyPluginAsync = async (app) => {
-  // Get all users
-  app.get('/', async (req, reply) => {
-    const users = await userService.listUsers(app.prisma);
+  app.get("/", async (req, reply) => {
+    const users = await app.prisma.user.findMany();
     reply.send(users);
   });
-
-  // Get single user
-  app.get('/:id', async (req, reply) => {
-    const { id } = req.params as any;
-    const user = await userService.getUser(app.prisma, Number(id));
-    if (!user) return reply.code(404).send({ error: 'User not found' });
-    reply.send(user);
+  app.get("/:id", async (req, reply) => {
+    const id = Number((req.params as any).id);
+    const u = await app.prisma.user.findUnique({ where: { id } });
+    if (!u) return reply.status(404).send({ error: "User not found" });
+    reply.send(u);
   });
-
-  // Create user
-  app.post('/', async (req, reply) => {
-    const data = req.body as any;
-    const user = await userService.createUser(app.prisma, data);
+  app.post("/", async (req, reply) => {
+    const { name, email, isAdmin = false } = req.body as any;
+    const user = await app.prisma.user.create({ data: { name, email, isAdmin } });
     reply.code(201).send(user);
   });
 };
-
 export default userRoutes;

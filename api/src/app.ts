@@ -1,27 +1,19 @@
-import fastify from 'fastify';
-import { prismaPlugin } from './plugins/prisma';
-import orderRoutes from './routes/order';
-import productRoutes from './routes/product';
-import userRoutes from './routes/user';
-import cors from '@fastify/cors';
+import fastify from "fastify";
+import cors from "@fastify/cors";
+import { prismaPlugin } from "./prisma";
+import userRoutes from "./routes/user";
+import productRoutes from "./routes/product";
+import orderRoutes from "./routes/order";
 
 export function buildApp() {
-    const app = fastify({ logger: true });
+  const app = fastify({ logger: true });
+  app.register(cors, { origin: "*", methods: ["GET", "POST", "PATCH"] });
+  app.register(prismaPlugin);
 
-    app.register(prismaPlugin); // Prisma Client on app
+  app.get("/healthz", async () => "ok");
+  app.register(userRoutes, { prefix: "/users" });
+  app.register(productRoutes, { prefix: "/products" });
+  app.register(orderRoutes, { prefix: "/orders" });
 
-
-    app.register(cors, {
-        origin: 'http://localhost:3000', // or '*' for dev/test
-        methods: ['GET', 'POST', 'PATCH', 'OPTIONS']
-    });
-
-
-    app.get('/healthz', async () => 'ok');
-
-    app.register(userRoutes, { prefix: '/users' });
-    app.register(productRoutes, { prefix: '/products' });
-    app.register(orderRoutes, { prefix: '/orders' });
-
-    return app;
+  return app;
 }
